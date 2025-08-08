@@ -89,14 +89,26 @@
   @media (max-width: 820px) and (orientation: portrait){
     :root{ --kbdH: 240px }
     html, body{ overflow-x:hidden }
-    body{ font-size:13px }
+    body{ font-size:12px }
     .app{ padding-bottom: calc(var(--kbdH) + env(safe-area-inset-bottom)); }
     .kbd{ position:fixed; left:0; right:0; bottom:0; margin-top:0; border-radius:0; z-index:20; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); }
     .kbd svg{ max-height: calc(var(--kbdH) - 16px) }
-    .bar{ padding:6px; gap:6px }
-    .group{ padding:6px }
-    .knob{ width:110px }
+    .bar{ padding:4px; gap:4px }
+    .group{ padding:4px; gap:6px }
+    label{ font-size:11px }
+    .dxbtn{ min-width:32px; height:26px; padding:0 8px; font-size:12px }
+    .octWrap .dxbtn{ min-width:38px; height:32px; font-size:14px }
+    .knob{ width:100px; max-width:50vw }
+    /* Compact sliders */
+    input[type="range"]{ height:16px }
+    input[type="range"]::-webkit-slider-runnable-track{ height:16px }
+    input[type="range"]::-moz-range-track{ height:16px }
+    input[type="range"]::-webkit-slider-thumb{ width:14px; height:16px }
+    input[type="range"]::-moz-range-thumb{ width:14px; height:16px }
+    .mono{ font-size:11px; padding:3px 5px; min-width:48px }
+    .opsDock .hdr{ font-size:10px; margin-bottom:0 }
     .opsDock .lab{ font-size:11px }
+    .opRow{ padding:4px 0; gap:6px }
   }
 </style>
 </head>
