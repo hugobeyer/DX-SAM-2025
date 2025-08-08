@@ -27,6 +27,10 @@
     box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
   }
   .group{display:flex;gap:8px;align-items:center;background:var(--panel2);padding:8px;border-radius:10px;border:1px solid #2e3345}
+  .groupRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .sub{display:flex;gap:8px;align-items:center}
+  .vCol{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+  .vCol input[type="range"]{ width:120px }
   label{font-size:12px;color:var(--mut)}
   select,input[type="range"]{accent-color:var(--acc)}
   select,.knob{background:#0f1117;color:var(--txt);border:1px solid #2c3142;border-radius:8px;padding:6px 8px}
@@ -95,10 +99,13 @@
     .kbd svg{ max-height: calc(var(--kbdH) - 16px) }
     .bar{ padding:4px; gap:4px }
     .group{ padding:4px; gap:6px }
+    .groupRow{ gap:6px }
+    .sub{ gap:6px }
     label{ font-size:11px }
     .dxbtn{ min-width:32px; height:26px; padding:0 8px; font-size:12px }
     .octWrap .dxbtn{ min-width:38px; height:32px; font-size:14px }
     .knob{ width:100px; max-width:50vw }
+    .vCol input[type="range"]{ width:100px }
     /* Compact sliders */
     input[type="range"]{ height:16px }
     input[type="range"]::-webkit-slider-runnable-track{ height:16px }
@@ -123,46 +130,58 @@
       <button id="octUp" class="dxbtn" title="X">▶</button>
     </div>
 
-    <div class="group">
-      <button id="powerBtn" class="dxbtn">Power</button>
-      <div class="led" id="powerLed" title="audio"></div>
+    <!-- Row 1: Power + Patch + Algo -->
+    <div class="group groupRow">
+      <div class="sub">
+        <button id="powerBtn" class="dxbtn">Power</button>
+        <div class="led" id="powerLed" title="audio"></div>
+      </div>
+      <div class="sub">
+        <label>Patch</label>
+        <select id="patchSel" title="Preset patches">
+          <option value="0">E.Piano-ish</option>
+          <option value="1">Bass-Solid</option>
+          <option value="2">Bells</option>
+          <option value="3">Brass-Soft</option>
+        </select>
+      </div>
+      <div class="sub">
+        <label>Algo</label>
+        <select id="algoSel" title="FM Algorithm">
+          <option value="0">1) 4→3→2→1</option>
+          <option value="1">2) (3+4)→2→1</option>
+          <option value="2">3) 2→1 & 4→3</option>
+          <option value="3">4) (2+3+4)→1</option>
+        </select>
+      </div>
     </div>
 
-    <div class="group">
-      <label>Patch</label>
-      <select id="patchSel" title="Preset patches">
-        <option value="0">E.Piano-ish</option>
-        <option value="1">Bass-Solid</option>
-        <option value="2">Bells</option>
-        <option value="3">Brass-Soft</option>
-      </select>
+    <!-- Row 2: Feedback + Mod Index -->
+    <div class="group groupRow">
+      <div class="sub">
+        <label>Feedback</label><input id="feedback" class="knob" type="range" min="0" max="1.0" step="0.001" value="0.15">
+      </div>
+      <div class="sub">
+        <label>Mod Index</label><input id="modIndex" class="knob" type="range" min="0" max="12" step="0.01" value="4">
+      </div>
     </div>
 
-    <div class="group">
-      <label>Algo</label>
-      <select id="algoSel" title="FM Algorithm">
-        <option value="0">1) 4→3→2→1</option>
-        <option value="1">2) (3+4)→2→1</option>
-        <option value="2">3) 2→1 & 4→3</option>
-        <option value="3">4) (2+3+4)→1</option>
-      </select>
+    <!-- Row 3: ADSR stacked vertically in same row -->
+    <div class="group groupRow">
+      <div class="vCol">
+        <label>A</label><input id="envA" type="range" min="0.001" max="2.0" step="0.001" value="0.01">
+      </div>
+      <div class="vCol">
+        <label>D</label><input id="envD" type="range" min="0.001" max="3.0" step="0.001" value="0.25">
+      </div>
+      <div class="vCol">
+        <label>S</label><input id="envS" type="range" min="0" max="1" step="0.001" value="0.6">
+      </div>
+      <div class="vCol">
+        <label>R</label><input id="envR" type="range" min="0.01" max="4.0" step="0.01" value="0.4">
+      </div>
     </div>
-
-    <div class="group">
-      <label>Feedback</label><input id="feedback" class="knob" type="range" min="0" max="1.0" step="0.001" value="0.15">
-    </div>
-    <div class="group">
-      <label>Mod Index</label><input id="modIndex" class="knob" type="range" min="0" max="12" step="0.01" value="4">
-    </div>
-    <div class="group">
-      <label>A</label><input id="envA" type="range" min="0.001" max="2.0" step="0.001" value="0.01">
-      <label>D</label><input id="envD" type="range" min="0.001" max="3.0" step="0.001" value="0.25">
-      <label>S</label><input id="envS" type="range" min="0" max="1" step="0.001" value="0.6">
-      <label>R</label><input id="envR" type="range" min="0.01" max="4.0" step="0.01" value="0.4">
-    </div>
-    <div class="group">
-      <label>Volume</label><input id="master" type="range" min="0" max="1" step="0.001" value="0.5" class="knob">
-    </div>
+    <div class="group"><label>Volume</label><input id="master" type="range" min="0" max="1" step="0.001" value="0.5" class="knob"></div>
 
     <!-- Operator Dock -->
     <div class="group opsDockWrap" style="grid-column:1/-1">
