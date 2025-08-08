@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>HB | DX - SAMO - FM</title>
+<style>
+  :root{
+    --bg:#121216;--panel:#1a1c22;--panel2:#232633;--txt:#e7e7ea;
+    --acc:#7fd1ff;--mut:#8a8f9c;
+    --dx-on:#7fd1ff; --dx-off:#313745; --dx-text:#dfe7ff;
+    --op1:#7fd1ff; --op2:#9cff7f; --op3:#ffc96b; --op4:#ff7fcf;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:radial-gradient(1200px 600px at 70% -10%, #1e2230 0%, #0d0f14 55%, #07080b 100%);
+    color:var(--txt);font:14px/1.2 Inter,Segoe UI,system-ui,Arial,sans-serif;
+    user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  }
+  .app{max-width:1180px;margin:8px auto;padding:12px}
+  /* Top bar grid -> collapses on mobile */
+  .bar{
+    display:grid;grid-template-columns:repeat(6,max-content) 1fr;gap:10px 12px;align-items:center;
+    background:linear-gradient(180deg,var(--panel),#13151b);
+    border:1px solid #2c3040;border-radius:12px;padding:10px 10px 8px;
+    box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .group{display:flex;gap:8px;align-items:center;background:var(--panel2);padding:8px;border-radius:10px;border:1px solid #2e3345}
+  label{font-size:12px;color:var(--mut)}
+  select,input[type="range"]{accent-color:var(--acc)}
+  select,.knob{background:#0f1117;color:var(--txt);border:1px solid #2c3142;border-radius:8px;padding:6px 8px}
+  .knob{width:160px;max-width:45vw}
+  .led{width:10px;height:10px;border-radius:50%;background:#2f363f;box-shadow:0 0 0 1px #2c3342 inset}
+  .led.on{background:radial-gradient(circle at 30% 30%, #aaffcc, #2cff72 60%, #0a4 100%);box-shadow:0 0 18px #39ff8a}
+
+  /* Analog-style sliders (drag up/down) */
+  input[type="range"]{ -webkit-appearance:none; appearance:none; height:20px; background:linear-gradient(180deg,#0d0f16,#0b0d12); border:1px solid #2c3142; border-radius:10px; cursor:ns-resize; touch-action:none }
+  input[type="range"]:hover{ border-color:#3e4660 }
+  input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:20px; border-radius:8px; background:linear-gradient(180deg,#9fe0ff,#59b8ff); border:1px solid #3a6a8a; box-shadow:0 2px 8px rgba(0,0,0,.4) }
+  input[type="range"]::-moz-range-thumb{ width:16px; height:20px; border:none; border-radius:8px; background:linear-gradient(180deg,#9fe0ff,#59b8ff); box-shadow:0 2px 8px rgba(0,0,0,.4) }
+  input[type="range"]::-webkit-slider-runnable-track{ height:20px; background:linear-gradient(180deg,#121622,#0c0f16); border-radius:10px }
+  input[type="range"]::-moz-range-track{ height:20px; background:linear-gradient(180deg,#121622,#0c0f16); border-radius:10px }
+
+  /* DX-style membrane buttons */
+  .dxbtn{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:28px;padding:0 10px;border-radius:6px;border:1px solid #3a4156;cursor:pointer;user-select:none;background:linear-gradient(180deg,#0e1220,#0a0d16);color:var(--dx-text);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06)}
+  .dxbtn.on{background:linear-gradient(180deg,#112b3a,#0c1f2c);border-color:#3f6d8a;box-shadow:0 0 12px rgba(127,209,255,.25) inset, 0 0 12px rgba(127,209,255,.2)}
+  .dxbtn:active{transform:translateY(1px)}
+  .dxseg{display:inline-flex;border:1px solid #3a4156;border-radius:6px;overflow:hidden}
+  .dxseg .dxbtn{border:0;border-right:1px solid #3a4156}
+  .dxseg .dxbtn:last-child{border-right:0}
+  .mono{font:12px ui-monospace,Consolas,monospace;padding:4px 6px;border:1px solid #2c3142;border-radius:6px;background:#0c0f16;min-width:58px;text-align:center;color:#b9c2d6}
+  .opdot{width:10px;height:10px;border-radius:50%}
+  .op1{background:var(--op1)} .op2{background:var(--op2)} .op3{background:var(--op3)} .op4{background:var(--op4)}
+
+  /* Compact operator dock; mobile: horizontal scroll */
+  .opsDockWrap{grid-column:1/-1}
+  .opsDock{display:grid;grid-template-columns:auto auto auto auto auto auto;gap:6px 10px;padding:8px}
+  .opsDock .hdr{grid-column:1/-1;color:#9aa3b7;font-size:11px;opacity:.9;margin-bottom:2px}
+  .opsDock .lab{font:12px/1.2 ui-monospace,Consolas;color:#cfd6ea}
+  .opRow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 0;border-bottom:1px solid #2c3040}
+  .opRow:last-child{border-bottom:0}
+
+  /* Keyboard container */
+  .kbd{ margin-top:10px; display:flex; justify-content:center; position:relative; padding:10px; background:linear-gradient(180deg,var(--panel),#13151b); border:1px solid #2c3040; border-radius:12px }
+  .kbd svg{ width:100%; height:auto; max-height:220px }
+
+  svg text{ font-family: ui-monospace,Consolas,monospace; fill:#8a8f9c; pointer-events:none }
+  .whiteKey.white rect{ fill:url(#whiteGrad); stroke:#c9c9c9 }
+  .blackKey.black rect{ fill:url(#blackGrad); stroke:#222 }
+  .whiteKey.white.down rect{ filter:brightness(0.92) }
+  .blackKey.black.down rect{ filter:brightness(1.2) }
+  .brand text{ font-family: 'Eurostile','Bank Gothic','Segoe UI',sans-serif; letter-spacing:0.08em; fill:#dfe7ff; font-style: italic }
+
+  /* Mobile tweaks */
+  @media (max-width: 820px){
+    .bar{grid-template-columns:1fr;gap:8px}
+    .group{padding:6px}
+    .knob{width:140px}
+    .opsDockWrap{overflow-x:visible}
+    .opsDock{display:block;padding:8px}
+    .opsDock .hdr{flex:0 0 auto;width:auto;margin-right:8px}
+    .dxbtn{min-width:40px;height:34px}
+    .kbd svg{max-height:260px}
+    .octWrap{display:flex;gap:8px;align-items:center}
+    .octWrap .dxbtn{min-width:44px;height:40px;font-size:16px}
+  }
+  /* Portrait: FIX keyboard to BOTTOM and avoid overlap/scroll issues */
+  @media (max-width: 820px) and (orientation: portrait){
+    :root{ --kbdH: 300px }
+    html, body{ overflow-x:hidden }
+    .app{ padding-bottom: calc(var(--kbdH) + env(safe-area-inset-bottom)); }
+    .kbd{ position:fixed; left:0; right:0; bottom:0; margin-top:0; border-radius:0; z-index:20; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); }
+    .kbd svg{ max-height: calc(var(--kbdH) - 16px) }
+    .bar{ padding:6px; gap:6px }
+    .group{ padding:6px }
+    .knob{ width:120px }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <div class="group"><strong><em>HB | DX - SAMO - FM</em></strong></div>
+
+    <div class="group octWrap">
+      <button id="octDown" class="dxbtn" title="Z">◀</button>
+      <span id="octLabel" class="mono" style="min-width:72px;text-align:center">C4–C5</span>
+      <button id="octUp" class="dxbtn" title="X">▶</button>
+    </div>
+
+    <div class="group">
+      <button id="powerBtn" class="dxbtn">Power</button>
+      <div class="led" id="powerLed" title="audio"></div>
+    </div>
+
+    <div class="group">
+      <label>Patch</label>
+      <select id="patchSel" title="Preset patches">
+        <option value="0">E.Piano-ish</option>
+        <option value="1">Bass-Solid</option>
+        <option value="2">Bells</option>
+        <option value="3">Brass-Soft</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label>Algo</label>
+      <select id="algoSel" title="FM Algorithm">
+        <option value="0">1) 4→3→2→1</option>
+        <option value="1">2) (3+4)→2→1</option>
+        <option value="2">3) 2→1 & 4→3</option>
+        <option value="3">4) (2+3+4)→1</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label>Feedback</label><input id="feedback" class="knob" type="range" min="0" max="1.0" step="0.001" value="0.15">
+    </div>
+    <div class="group">
+      <label>Mod Index</label><input id="modIndex" class="knob" type="range" min="0" max="12" step="0.01" value="4">
+    </div>
+    <div class="group">
+      <label>A</label><input id="envA" type="range" min="0.001" max="2.0" step="0.001" value="0.01">
+      <label>D</label><input id="envD" type="range" min="0.001" max="3.0" step="0.001" value="0.25">
+      <label>S</label><input id="envS" type="range" min="0" max="1" step="0.001" value="0.6">
+      <label>R</label><input id="envR" type="range" min="0.01" max="4.0" step="0.01" value="0.4">
+    </div>
+    <div class="group">
+      <label>Volume</label><input id="master" type="range" min="0" max="1" step="0.001" value="0.5" class="knob">
+    </div>
+
+    <!-- Operator Dock -->
+    <div class="group opsDockWrap" style="grid-column:1/-1">
+      <div class="opsDock" id="opsDock"></div>
+    </div>
+  </div>
+
+  <!-- SVG Keyboard -->
+  <div id="keyboard" class="kbd" aria-label="Keyboard: asdfghjk (white), wertyu (black)"></div>
+
+  <!-- Keep for future: verbose cards (hidden unless used) -->
+  <div class="ops" id="opsPanel" style="display:none"></div>
+
+  <div class="footer" style="opacity:.7;font-size:12px;margin-top:8px;text-align:center">
+    Keys: <b>asdfghjk</b> (white) + <b>wertyu</b> (black). Octave: <b>Z</b>/<b>X</b> or ◀/▶. Drag sliders <b>up/down</b> (Shift=fine, Alt=coarse).
+  </div>
+</div>
+
+<script>
+(() => {
+  // ---- Audio setup ----
+  let ctx = null, master = null, limiter = null;
+  const MAX_VOICES = 10;
+  const activeVoices = new Map();
+  let algo = 0, modIndexScale = 4.0, feedbackAmt = 0.15;
+  const env = {A:0.01,D:0.25,S:0.6,R:0.4};
+
+  const PATCHES = [
+    {name:"EP",  ratios:[1,2,3,6], levels:[1.0,0.6,0.35,0.25]},
+    {name:"Bass",ratios:[0.5,1,2,3], levels:[1.0,0.7,0.25,0.15]},
+    {name:"Bells",ratios:[1,3,5,7], levels:[0.9,0.8,0.5,0.35]},
+    {name:"Brass",ratios:[1,2,2.99,0.5], levels:[1.0,0.8,0.2,0.1]},
+  ];
+  let patchIdx = 0;
+  let opLevelRestore = PATCHES[patchIdx].levels.slice();
+
+  function midiToFreq(n){return 440 * Math.pow(2,(n-69)/12);}
+  function now(){return ctx ? ctx.currentTime : 0;}
+
+  function ensureAudio(){
+    if (ctx) return;
+    ctx = new (window.AudioContext || window.webkitAudioContext)({latencyHint:"interactive"});
+    master = ctx.createGain(); master.gain.value = parseFloat(document.getElementById('master').value);
+    limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -3; limiter.knee.value = 1; limiter.ratio.value = 12; limiter.attack.value = 0.003; limiter.release.value = 0.1;
+    master.connect(limiter).connect(ctx.destination);
+    document.getElementById('powerLed').classList.add('on');
+  }
+
+  // ---- FM Operator ----
+  class Operator {
+    constructor(){
+      this.osc = ctx.createOscillator(); this.osc.type = 'sine';
+      this.out = ctx.createGain(); this.out.gain.value = 0.0;
+      this.modGain = ctx.createGain(); this.modGain.gain.value = 0.0;
+      this.osc.connect(this.out);
+      this.started = false;
+      this.fbGain = ctx.createGain(); this.fbGain.gain.value = 0.0;
+      this.osc.connect(this.fbGain);
+      this.fbGain.connect(this.osc.frequency);
+    }
+    start(t){ if (!this.started){ this.osc.start(t); this.started = true; } }
+    stop(t){ try{ this.osc.stop(t);}catch{} }
+    setFreqHz(f){ this.osc.frequency.setValueAtTime(f, now()); }
+    setLevel(g){ this.out.gain.setTargetAtTime(g, now(), 0.003); }
+    setModDepth(hz){ this.modGain.gain.setTargetAtTime(hz, now(), 0.003); }
+    setFeedback(amountHz){ this.fbGain.gain.setTargetAtTime(amountHz, now(), 0.003); }
+    connectToParam(param){ this.osc.connect(this.modGain); this.modGain.connect(param); }
+    connectOut(dst){ this.out.connect(dst); }
+  }
+
+  // ---- Voice ----
+  class Voice {
+    constructor(note, baseHz, params){
+      this.note = note; this.baseHz = baseHz; this.params = params;
+      this.envGain = ctx.createGain(); this.envGain.gain.value = 0;
+      this.mix = ctx.createGain(); this.mix.gain.value = 0.9;
+      this.mix.connect(this.envGain).connect(master);
+      this.ops = [new Operator(), new Operator(), new Operator(), new Operator()];
+      this.ops.forEach((op,i)=>{ op.setFreqHz(baseHz * params.ratios[i]); });
+      this.applyAlgorithm(algo);
+      this.carriers.forEach(i => this.ops[i].connectOut(this.mix));
+      this.refreshLevels();
+      const t = now(); this.ops.forEach(op=>op.start(t)); this.noteOn();
+    }
+    applyAlgorithm(algoIdx){
+      this.ops.forEach(op=>{ try{ op.modGain.disconnect(); }catch{} });
+      const algos = [
+        {conns:[[3,2],[2,1],[1,0]], carriers:[0]},
+        {conns:[[2,1],[3,1],[1,0]], carriers:[0]},
+        {conns:[[1,0],[3,2]], carriers:[0,2]},
+        {conns:[[1,0],[2,0],[3,0]], carriers:[0]},
+      ];
+      const A = algos[algoIdx];
+      this.carriers = A.carriers.slice();
+      A.conns.forEach(([m,t])=>{ this.ops[m].connectToParam(this.ops[t].osc.frequency); });
+      this.ops[this.carriers[0]].setFeedback(feedbackAmt * 50);
+    }
+    refreshLevels(){
+      const level = this.params.levels, ratios = this.params.ratios, base = this.baseHz, idxScale = modIndexScale;
+      for (let i=0;i<4;i++){
+        const isCarrier = this.carriers.includes(i);
+        this.ops[i].setLevel(isCarrier ? level[i] : 0.0);
+        const depthHz = base * ratios[i] * idxScale * level[i];
+        this.ops[i].setModDepth(depthHz);
+      }
+    }
+    setEnvelope(A,D,S,R){ this.env = {A,D,S,R}; }
+    noteOn(){
+      const t = now(); const {A,D,S} = this.env || env; const g = this.envGain.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(0,t);
+      g.linearRampToValueAtTime(1, t + A);
+      g.linearRampToValueAtTime(S, t + A + D);
+    }
+    noteOff(){
+      const t = now(); const R = (this.env?.R ?? env.R); const g = this.envGain.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+      g.linearRampToValueAtTime(0, t + R);
+      const stopAt = t + Math.max(0.05, R + 0.05);
+      this.ops.forEach(op=>op.stop(stopAt + 0.01));
+      return stopAt + 0.02;
+    }
+  }
+
+  function voiceOn(note){
+    if (!ctx) return;
+    if (activeVoices.size >= MAX_VOICES && !activeVoices.has(note)){
+      const firstKey = activeVoices.keys().next().value; voiceOff(firstKey);
+    }
+    if (activeVoices.has(note)) return;
+    const v = new Voice(note, midiToFreq(note), PATCHES[patchIdx]);
+    v.setEnvelope(env.A, env.D, env.S, env.R); v.refreshLevels();
+    activeVoices.set(note, v);
+  }
+  function voiceOff(note){
+    const v = activeVoices.get(note); if (!v) return;
+    const stopAt = v.noteOff();
+    setTimeout(()=>{ activeVoices.delete(note); }, (stopAt - now())*1000 + 2);
+  }
+
+  // ---- Operator Dock ----
+  const opsDock = document.getElementById('opsDock');
+  const OP_COLORS = ['op1','op2','op3','op4'];
+  function renderOpsDock(){
+    opsDock.innerHTML = '';
+    const hdr = document.createElement('div'); hdr.className='hdr'; hdr.textContent = 'OPERATORS'; opsDock.appendChild(hdr);
+    for(let i=0;i<4;i++){
+      const row = document.createElement('div'); row.className = 'opRow';
+      const dot = document.createElement('div'); dot.className=`opdot ${OP_COLORS[i]}`; dot.title = `Operator ${i+1}`;
+      const lab = document.createElement('div'); lab.className='lab'; lab.textContent = `OP${i+1}`;
+      const on = document.createElement('div'); on.className='dxbtn on'; on.textContent='ON'; on.dataset.role='on'; on.title='Toggle On/Off';
+      const ratioBox = document.createElement('div'); ratioBox.className='mono'; ratioBox.dataset.role='ratioBox'; ratioBox.textContent = PATCHES[patchIdx].ratios[i].toFixed(2);
+      const ratioSeg = document.createElement('div'); ratioSeg.className='dxseg';
+      const rMinus = document.createElement('div'); rMinus.className='dxbtn'; rMinus.textContent='−';
+      const rPlus = document.createElement('div'); rPlus.className='dxbtn'; rPlus.textContent='+';
+      ratioSeg.appendChild(rMinus); ratioSeg.appendChild(rPlus);
+      const levelBox = document.createElement('div'); levelBox.className='mono'; levelBox.dataset.role='levelBox'; levelBox.textContent = PATCHES[patchIdx].levels[i].toFixed(2);
+      const levelSeg = document.createElement('div'); levelSeg.className='dxseg';
+      const lMinus = document.createElement('div'); lMinus.className='dxbtn'; lMinus.textContent='−';
+      const lPlus = document.createElement('div'); lPlus.className='dxbtn'; lPlus.textContent='+';
+      levelSeg.appendChild(lMinus); levelSeg.appendChild(lPlus);
+
+      row.appendChild(dot); row.appendChild(lab); row.appendChild(on);
+      row.appendChild(ratioBox); row.appendChild(ratioSeg);
+      row.appendChild(levelBox); row.appendChild(levelSeg);
+      opsDock.appendChild(row);
+
+      if (PATCHES[patchIdx].levels[i] <= 0.0001) on.classList.remove('on'), on.textContent='OFF';
+
+      on.addEventListener('click', ()=>toggleOp(i,on,levelBox));
+      attachRepeater(rMinus, (e)=>nudgeRatio(i,-1,e));
+      attachRepeater(rPlus,  (e)=>nudgeRatio(i,+1,e));
+      attachRepeater(lMinus, (e)=>nudgeLevel(i,-1,e));
+      attachRepeater(lPlus,  (e)=>nudgeLevel(i,+1,e));
+    }
+  }
+  function attachRepeater(el, fn){
+    let int=null;
+    const fire=(e)=>fn(e);
+    el.addEventListener('pointerdown', (e)=>{ e.preventDefault(); fire(e); int=setInterval(()=>fire(e), 90); });
+    window.addEventListener('pointerup', ()=>{ if(int){ clearInterval(int); int=null; }});
+  }
+  function toggleOp(i, btn, levelBox){
+    const levels = PATCHES[patchIdx].levels;
+    if (levels[i] > 0){ opLevelRestore[i] = levels[i]; levels[i] = 0; btn.classList.remove('on'); btn.textContent='OFF'; }
+    else { levels[i] = opLevelRestore[i] ?? 0.3; btn.classList.add('on'); btn.textContent='ON'; }
+    levelBox.textContent = levels[i].toFixed(2);
+    activeVoices.forEach(v=>v.refreshLevels());
+  }
+  function nudgeRatio(i, dir, e){
+    const fine = e && e.shiftKey ? 0.01 : (e && e.altKey ? 0.5 : 0.1);
+    const ratios = PATCHES[patchIdx].ratios; ratios[i] = Math.max(0.25, Math.min(12, ratios[i] + dir*fine));
+    const boxes = opsDock.querySelectorAll('.mono');
+    const box = boxes[i*2]; if (box) box.textContent = ratios[i].toFixed(2);
+    activeVoices.forEach(v=>{ v.ops[i].setFreqHz(v.baseHz * ratios[i]); v.refreshLevels(); });
+  }
+  function nudgeLevel(i, dir, e){
+    const fine = e && e.shiftKey ? 0.01 : (e && e.altKey ? 0.1 : 0.02);
+    const levels = PATCHES[patchIdx].levels; levels[i] = Math.max(0, Math.min(1, levels[i] + dir*fine));
+    const boxes = opsDock.querySelectorAll('.mono');
+    const box = boxes[i*2+1]; if (box) box.textContent = levels[i].toFixed(2);
+    activeVoices.forEach(v=>v.refreshLevels());
+  }
+
+  // ---- Top bar controls ----
+  document.getElementById('powerBtn').addEventListener('click', async ()=>{ ensureAudio(); if (ctx.state === 'suspended') await ctx.resume(); });
+  ['envA','envD','envS','envR'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', ()=>{
+      env.A = parseFloat(document.getElementById('envA').value);
+      env.D = parseFloat(document.getElementById('envD').value);
+      env.S = parseFloat(document.getElementById('envS').value);
+      env.R = parseFloat(document.getElementById('envR').value);
+      activeVoices.forEach(v=>v.setEnvelope(env.A,env.D,env.S,env.R));
+    });
+  });
+  document.getElementById('master').addEventListener('input', e=>{ ensureAudio(); master.gain.setTargetAtTime(parseFloat(e.target.value), now(), 0.01); });
+  document.getElementById('modIndex').addEventListener('input', e=>{ modIndexScale = parseFloat(e.target.value); activeVoices.forEach(v=>v.refreshLevels()); });
+  document.getElementById('feedback').addEventListener('input', e=>{ feedbackAmt = parseFloat(e.target.value); activeVoices.forEach(v=>{ const c = v.carriers[0]; v.ops[c].setFeedback(feedbackAmt * 50); }); });
+  document.getElementById('algoSel').addEventListener('change', e=>{ algo = parseInt(e.target.value,10); activeVoices.forEach(v=>{ v.applyAlgorithm(algo); v.refreshLevels(); }); });
+  document.getElementById('patchSel').addEventListener('change', e=>{
+    patchIdx = parseInt(e.target.value,10);
+    opLevelRestore = PATCHES[patchIdx].levels.slice();
+    renderOpsDock();
+    activeVoices.forEach(v=>{
+      v.params = PATCHES[patchIdx];
+      v.ops.forEach((op,i)=>op.setFreqHz(v.baseHz * v.params.ratios[i]));
+      v.refreshLevels();
+    });
+  });
+
+  // Octave buttons
+  const OCT_BASES = [36,48,60,72]; // C2..C5 (each covers to next C)
+  let octaveIdx = 2; // default C4–C5
+  document.getElementById('octDown').addEventListener('click', ()=> setOctave(octaveIdx-1));
+  document.getElementById('octUp').addEventListener('click', ()=> setOctave(octaveIdx+1));
+
+  // ---- Keyboard (SVG) ----
+  const kbd = document.getElementById('keyboard');
+  const WHITE_W = 48, WHITE_H = 160, BLACK_W = 32, BLACK_H = 96;
+  const whiteKeys = 'asdfghjk'.split('');
+  const whiteOffsets = [0,2,4,5,7,9,11,12];
+  const blackOrder = ['w','e','r','t','y','u'];
+  const blackMap = { w:1, e:3, r:6, t:8, y:10, u:13 };
+  const letterToName = {a:'C',s:'D',d:'E',f:'F',g:'G',h:'A',j:'B',k:'C', w:'C#',e:'D#',r:'F#',t:'G#',y:'A#',u:'C#'};
+
+  function buildKeyboard(){
+    const baseX=20, baseY=16;
+    const svgW = baseX*2 + WHITE_W*9;
+    const svgH = baseY*2 + WHITE_H + 18;
+    const NS='http://www.w3.org/2000/svg';
+    kbd.innerHTML='';
+    const svg = document.createElementNS(NS,'svg');
+    svg.setAttribute('id','kbdSVG');
+    svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+
+    const defs = document.createElementNS(NS,'defs');
+    const gradW = document.createElementNS(NS,'linearGradient'); gradW.id='whiteGrad'; gradW.setAttribute('x1','0'); gradW.setAttribute('x2','0'); gradW.setAttribute('y1','0'); gradW.setAttribute('y2','1');
+    gradW.innerHTML = '<stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#ececec"/>';
+    const gradB = document.createElementNS(NS,'linearGradient'); gradB.id='blackGrad'; gradB.setAttribute('x1','0'); gradB.setAttribute('x2','0'); gradB.setAttribute('y1','0'); gradB.setAttribute('y2','1');
+    gradB.innerHTML = '<stop offset="0%" stop-color="#0c0c0c"/><stop offset="100%" stop-color="#3a3a3a"/>';
+    defs.appendChild(gradW); defs.appendChild(gradB); svg.appendChild(defs);
+
+    const plate = document.createElementNS(NS,'rect');
+    plate.setAttribute('x','8'); plate.setAttribute('y','8'); plate.setAttribute('rx','12'); plate.setAttribute('ry','12');
+    plate.setAttribute('width', svgW-16); plate.setAttribute('height', svgH-16);
+    plate.setAttribute('fill','#0e1117'); plate.setAttribute('stroke','#2a2f3f');
+    svg.appendChild(plate);
+
+    const brandG = document.createElementNS(NS,'g'); brandG.setAttribute('class','brand');
+    const brandRect = document.createElementNS(NS,'rect'); brandRect.setAttribute('x', String(baseX)); brandRect.setAttribute('y','-2'); brandRect.setAttribute('rx','6'); brandRect.setAttribute('ry','6'); brandRect.setAttribute('width','320'); brandRect.setAttribute('height','22'); brandRect.setAttribute('fill','#1b2030'); brandRect.setAttribute('stroke','#3a4360');
+    const brandText = document.createElementNS(NS,'text'); brandText.setAttribute('x', String(baseX + 10)); brandText.setAttribute('y','14'); brandText.setAttribute('font-size','11'); brandText.textContent='HB | DX - SAMO - FM';
+    brandG.appendChild(brandRect); brandG.appendChild(brandText); svg.appendChild(brandG);
+
+    // whites
+    whiteKeys.forEach((k,i)=>{
+      const g = document.createElementNS(NS,'g'); g.setAttribute('class','whiteKey white'); g.dataset.key = k;
+      const x = baseX + i*WHITE_W; const y = baseY;
+      const rect = document.createElementNS(NS,'rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',WHITE_W); rect.setAttribute('height',WHITE_H); rect.setAttribute('rx','6'); rect.setAttribute('ry','6');
+      const t = document.createElementNS(NS,'text'); t.setAttribute('x', x + WHITE_W/2); t.setAttribute('y', y + WHITE_H - 8); t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','11'); t.textContent = k;
+      const n = document.createElementNS(NS,'text'); n.setAttribute('x', x + WHITE_W/2); n.setAttribute('y', y + 16); n.setAttribute('text-anchor','middle'); n.setAttribute('font-size','10'); n.textContent = letterToName[k] || '';
+      g.appendChild(rect); g.appendChild(t); g.appendChild(n); svg.appendChild(g);
+    });
+
+    // blacks
+    const centers = [
+      {k:'w', c:0.5},{k:'e', c:1.5},{k:'r', c:3.5},{k:'t', c:4.5},{k:'y', c:5.5},{k:'u', c:8.5},
+    ];
+    centers.forEach(p=>{
+      const g = document.createElementNS(NS,'g'); g.setAttribute('class','blackKey black'); g.dataset.key = p.k;
+      const x = baseX + p.c*WHITE_W - BLACK_W/2; const y = baseY;
+      const rect = document.createElementNS(NS,'rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',BLACK_W); rect.setAttribute('height',BLACK_H); rect.setAttribute('rx','6'); rect.setAttribute('ry','6');
+      const t = document.createElementNS(NS,'text'); t.setAttribute('x', x + BLACK_W/2); t.setAttribute('y', y + BLACK_H - 8); t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','10'); t.textContent = p.k;
+      g.appendChild(rect); g.appendChild(t); svg.appendChild(g);
+    });
+
+    kbd.appendChild(svg);
+
+    // mouse/touch
+    kbd.querySelectorAll('.whiteKey.white, .blackKey.black').forEach(el=>{
+      el.addEventListener('pointerdown', async (e)=>{
+        e.preventDefault(); ensureAudio(); await ctx?.resume?.();
+        const midi = parseInt(el.dataset.midi,10);
+        keyVisual(el,true); voiceOn(midi);
+      });
+      el.addEventListener('pointerup', (e)=>{ e.preventDefault(); keyVisual(el,false); voiceOff(parseInt(el.dataset.midi,10)); });
+    });
+  }
+
+  // Mapping & octave
+  const keyToMidi = new Map();
+  function setOctave(idx){
+    octaveIdx = Math.max(0, Math.min(OCT_BASES.length-1, idx));
+    const base = OCT_BASES[octaveIdx];
+    kbd.querySelectorAll('.whiteKey.white').forEach((el,i)=>{ el.dataset.midi = base + whiteOffsets[i]; });
+    kbd.querySelectorAll('.blackKey.black').forEach((el)=>{ const k = el.dataset.key; el.dataset.midi = base + (blackMap[k]||0); });
+    keyToMidi.clear();
+    'asdfghjk'.split('').forEach((k,i)=> keyToMidi.set(k, base + whiteOffsets[i]));
+    ['w','e','r','t','y','u'].forEach(k=> keyToMidi.set(k, base + blackMap[k]));
+    const lab = document.getElementById('octLabel'); if (lab){ const o = (base/12)-1; lab.textContent = `C${o}–C${o+1}`; }
+  }
+  function keyVisual(el,down){ el.classList.toggle('down', !!down); }
+
+  // Global release (avoid stuck notes)
+  window.addEventListener('pointerup', ()=>{
+    kbd.querySelectorAll('.white.down,.black.down').forEach(el=>{
+      keyVisual(el,false);
+      const midi = parseInt(el.dataset.midi,10);
+      if (!isNaN(midi)) voiceOff(midi);
+    });
+  });
+
+  // Computer keyboard
+  const downKeys = new Set();
+  window.addEventListener('keydown', async (e)=>{
+    const k = e.key.toLowerCase();
+    if (k==='z'){ setOctave(octaveIdx-1); return; }
+    if (k==='x'){ setOctave(octaveIdx+1); return; }
+    if (!keyToMidi.has(k) || e.repeat) return;
+    e.preventDefault();
+    ensureAudio(); await ctx.resume();
+    const midi = keyToMidi.get(k);
+    downKeys.add(k);
+    const el = kbd.querySelector(`[data-key="${k}"]`);
+    if (el) keyVisual(el,true);
+    voiceOn(midi);
+  }, {passive:false});
+  window.addEventListener('keyup', (e)=>{
+    const k = e.key.toLowerCase();
+    if (!keyToMidi.has(k)) return;
+    e.preventDefault();
+    if (!downKeys.has(k)) return;
+    downKeys.delete(k);
+    const midi = keyToMidi.get(k);
+    const el = kbd.querySelector(`[data-key="${k}"]`);
+    if (el) keyVisual(el,false);
+    voiceOff(midi);
+  }, {passive:false});
+
+  // Analog drag for sliders
+  function attachAnalogTo(el, speed=0.004){
+    if (el.dataset.analogBound) return; el.dataset.analogBound = '1';
+    if (!el.dataset.default) el.dataset.default = el.value;
+    let active=false, startX=0, startVal=0;
+    const min=parseFloat(el.min||'0'), max=parseFloat(el.max||'1'), step=parseFloat(el.step||'0.001');
+    el.addEventListener('pointerdown', e=>{ active=true; startX=e.clientX; startVal=parseFloat(el.value); el.setPointerCapture?.(e.pointerId); e.preventDefault(); });
+    window.addEventListener('pointermove', e=>{
+      if(!active) return;
+      e.preventDefault();
+      const fine=e.shiftKey?0.2:1, coarse=e.altKey?4:1;
+      const mult=fine*coarse;
+      let delta=(e.clientX - startX) * (max-min) * speed * mult;
+      let nv=startVal + delta;
+      if(step>0){ nv = Math.round(nv/step)*step; }
+      nv=Math.min(max,Math.max(min,nv));
+      if(nv!==parseFloat(el.value)){ el.value = nv; el.dispatchEvent(new Event('input',{bubbles:true})); }
+    }, {passive:false});
+    window.addEventListener('pointerup', e=>{ if(!active) return; active=false; try{ el.releasePointerCapture?.(e.pointerId);}catch{} });
+    el.addEventListener('dblclick', ()=>{ el.value = el.dataset.default; el.dispatchEvent(new Event('input',{bubbles:true})); });
+    el.addEventListener('wheel', e=>{ e.preventDefault(); const nv = parseFloat(el.value) + (e.deltaY<0?1:-1)*(max-min)*speed*3; el.value = Math.min(max,Math.max(min,nv)); el.dispatchEvent(new Event('input',{bubbles:true})); }, {passive:false});
+  }
+  function enableAnalog(){ document.querySelectorAll('input[type="range"]').forEach(el=>attachAnalogTo(el)); }
+
+  // Init
+  buildKeyboard();
+  setOctave(2); // default C4–C5
+  renderOpsDock();
+  enableAnalog();
+
+  // ---- Quick self-tests ----
+  (function selfTest(){
+    const tests = [];
+    tests.push(['opsDock', !!document.getElementById('opsDock')]);
+    tests.push(['ops 4', document.querySelectorAll('#opsDock .dxbtn[title="Toggle On/Off"]').length===4]);
+    const whites = document.querySelectorAll('#keyboard .white').length;
+    const blacks = document.querySelectorAll('#keyboard .black').length;
+    tests.push(['whites==8', whites===8]);
+    tests.push(['blacks==6', blacks===6]);
+    let sz=0; for(const _ of keyToMidi) sz++;
+    tests.push(['keyMap==14', sz===14]);
+    const a0 = keyToMidi.get('a'); setOctave(1); const a1 = keyToMidi.get('a'); setOctave(2);
+    tests.push(['octave flip', a0!==a1]);
+    const ids = ['powerBtn','patchSel','algoSel','feedback','modIndex','envA','envD','envS','envR','master','octDown','octUp'];
+    tests.push(['controls', ids.every(id=>document.getElementById(id))]);
+    const ok = tests.every(t=>t[1]);
+    console[ok?'log':'error']('DX-SAM self-test:', Object.fromEntries(tests));
+  })();
+})();
+</script>
+</body>
+</html>
