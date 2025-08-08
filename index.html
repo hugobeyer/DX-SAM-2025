@@ -87,14 +87,16 @@
   }
   /* Portrait: FIX keyboard to BOTTOM and avoid overlap/scroll issues */
   @media (max-width: 820px) and (orientation: portrait){
-    :root{ --kbdH: 300px }
+    :root{ --kbdH: 240px }
     html, body{ overflow-x:hidden }
+    body{ font-size:13px }
     .app{ padding-bottom: calc(var(--kbdH) + env(safe-area-inset-bottom)); }
     .kbd{ position:fixed; left:0; right:0; bottom:0; margin-top:0; border-radius:0; z-index:20; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); }
     .kbd svg{ max-height: calc(var(--kbdH) - 16px) }
     .bar{ padding:6px; gap:6px }
     .group{ padding:6px }
-    .knob{ width:120px }
+    .knob{ width:110px }
+    .opsDock .lab{ font-size:11px }
   }
 </style>
 </head>
