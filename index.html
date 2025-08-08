@@ -28,10 +28,13 @@
   }
   .group{display:flex;gap:8px;align-items:center;background:var(--panel2);padding:8px;border-radius:10px;border:1px solid #2e3345}
   .groupRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .groupRow.splits{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:flex-end}
   .sub{display:flex;gap:8px;align-items:center}
   .vCol{display:flex;flex-direction:column;gap:6px;align-items:center}
-  /* Vertical slider (ADSR) */
-  input[type="range"].vslider{ height:120px; width:18px; writing-mode: bt-lr; -webkit-appearance: slider-vertical; appearance: slider-vertical }
+  /* Vertical slider (ADSR and others) */
+  input[type="range"].vslider{ height:200px; width:22px; writing-mode: bt-lr; -webkit-appearance: slider-vertical; appearance: slider-vertical }
+  input[type="range"].vslider::-webkit-slider-runnable-track{ width:22px }
+  input[type="range"].vslider::-webkit-slider-thumb{ width:22px; height:22px }
   label{font-size:12px;color:var(--mut)}
   select,input[type="range"]{accent-color:var(--acc)}
   select,.knob{background:#0f1117;color:var(--txt);border:1px solid #2c3142;border-radius:8px;padding:6px 8px}
@@ -110,7 +113,7 @@
     .dxbtn{ min-width:32px; height:26px; padding:0 8px; font-size:12px }
     .octWrap .dxbtn{ min-width:38px; height:32px; font-size:14px }
     .knob{ width:100px; max-width:50vw }
-    input[type="range"].vslider{ height:120px; width:16px }
+    input[type="range"].vslider{ height:260px; width:24px }
     /* Compact sliders */
     input[type="range"]{ height:16px }
     input[type="range"]::-webkit-slider-runnable-track{ height:16px }
@@ -168,25 +171,19 @@
       </div>
     </div>
 
-    <!-- Row 2: Feedback + Mod Index -->
-    <div class="group groupRow">
-      <div class="sub">
-        <label>Feedback</label><input id="feedback" class="knob" type="range" min="0" max="1.0" step="0.001" value="0.15">
-      </div>
-      <div class="sub">
-        <label>Mod Index</label><input id="modIndex" class="knob" type="range" min="0" max="12" step="0.01" value="4">
-      </div>
+    <!-- Row 2: Three horizontal splits with vertical sliders -->
+    <div class="group groupRow splits">
+      <div class="vCol"><label>Feedback</label><input id="feedback" class="vslider" type="range" min="0" max="1.0" step="0.001" value="0.15"></div>
+      <div class="vCol"><label>Mod Index</label><input id="modIndex" class="vslider" type="range" min="0" max="12" step="0.01" value="4"></div>
+      <div class="vCol"><label>Volume</label><input id="master" class="vslider" type="range" min="0" max="1" step="0.001" value="0.5"></div>
     </div>
 
-    <!-- Row 3: ADSR stacked vertically -->
-    <div class="group groupRow">
+    <!-- Row 3: ADSR stacked vertically (also in splits grid) -->
+    <div class="group groupRow splits">
       <div class="vCol"><label>A</label><input id="envA" class="vslider" type="range" min="0.001" max="2.0" step="0.001" value="0.01"></div>
       <div class="vCol"><label>D</label><input id="envD" class="vslider" type="range" min="0.001" max="3.0" step="0.001" value="0.25"></div>
       <div class="vCol"><label>S</label><input id="envS" class="vslider" type="range" min="0" max="1" step="0.001" value="0.6"></div>
       <div class="vCol"><label>R</label><input id="envR" class="vslider" type="range" min="0.01" max="4.0" step="0.01" value="0.4"></div>
-    </div>
-    <div class="group">
-      <label>Volume</label><input id="master" type="range" min="0" max="1" step="0.001" value="0.5" class="knob">
     </div>
 
     <!-- Operator Dock -->
